@@ -1,6 +1,10 @@
 import time
 import random
 
+# ==========================================
+# CORE ALGORITHM
+# ==========================================
+
 def max_value_limited_neighbors(a, k):
     """
     Find the maximum sum by selecting elements from array 'a' with at most 'k' adjacent 1s.
@@ -79,8 +83,15 @@ def count_adjacent_ones(b):
             count += 1
     return count
 
+# ==========================================
+# FUNCTIONAL VERIFICATION
+# ==========================================
 
-# Test with example cases from problem statement
+print("=" * 70)
+print(f"{'Experiment':<15} {'n':<8} {'k':<8} {'n*k':<12} {'Time (s)':<12} {'Ratio (Time/n*k)':<20}")
+print("=" * 70)
+
+# Test Case 1
 print("Test Case 1:")
 a1 = [100, 300, 400, 50]
 k1 = 1
@@ -92,6 +103,7 @@ print(f"Maximum sum: {max_sum1}")
 print(f"Adjacent 1s: {count_adjacent_ones(b1)}")
 print()
 
+# Test Case 2
 print("Test Case 2:")
 a2 = [10, 100, 300, 400, 50, 4500, 200, 30, 90]
 k2 = 2
@@ -125,3 +137,103 @@ for n in sizes:
     
     elapsed = end - start
     print(f"{n:6d} {elapsed:20.6f}")
+
+
+# ==========================================
+# SCIENTIFIC PERFORMANCE ANALYSIS
+# ==========================================
+
+print("\n" + "=" * 70)
+print("PART 2: Performance Analysis (O(n*k))")
+print("=" * 70)
+
+def run_experiment(n, k, runs=5):
+    """Helper to run timing and return average."""
+    random.seed(42)
+    a = [random.randint(1, 1000) for _ in range(n)]
+    
+    total_time = 0
+    for _ in range(runs):
+        start = time.perf_counter()
+        _ = max_value_limited_neighbors(a, k)
+        end = time.perf_counter()
+        total_time += (end - start)
+    return total_time / runs
+
+print(f"{'Exp Type':<15} {'n':<8} {'k':<8} {'n*k':<12} {'Time (s)':<12} {'Ratio (Time/n*k)':<20}")
+print("-" * 85)
+
+# EXPERIMENT 1: Fix n, Vary k
+# This proves that complexity depends on k
+fixed_n = 1000
+k_variations = [10, 50, 100, 200, 500, 800, 1000]
+
+print(f"--- Set 1: Fixed n={fixed_n}, Varying k ---")
+for k in k_variations:
+    random.seed(42)
+    a = [random.randint(1, 1000) for _ in range(fixed_n)]
+    
+    # Run multiple times and average to reduce noise
+    runs = 5
+    total_time = 0
+    for _ in range(runs):
+        start = time.perf_counter()
+        _ = max_value_limited_neighbors(a, k)
+        end = time.perf_counter()
+        total_time += (end - start)
+    
+    avg_time = total_time / runs
+    complexity_factor = fixed_n * k
+    ratio = avg_time / complexity_factor if complexity_factor > 0 else 0
+    
+    print(f"{'Fix N':<15} {fixed_n:<8} {k:<8} {complexity_factor:<12} {avg_time:<12.6f} {ratio:.2e}")
+
+print("-" * 70)
+
+# EXPERIMENT 2: Vary both n and k
+# This tests the full O(n*k) hypothesis
+mixed_variations = [
+    (500, 500),   # n*k = 250,000
+    (1000, 250),  # n*k = 250,000 (Should take similar time to above)
+    (2000, 125),  # n*k = 250,000 (Should take similar time to above)
+    (1000, 1000), # n*k = 1,000,000
+]
+
+print(f"--- Set 2: Varying Both (Testing n*k stability) ---")
+for n, k in mixed_variations:
+    random.seed(42)
+    a = [random.randint(1, 1000) for _ in range(n)]
+    
+    runs = 5
+    total_time = 0
+    for _ in range(runs):
+        start = time.perf_counter()
+        _ = max_value_limited_neighbors(a, k)
+        end = time.perf_counter()
+        total_time += (end - start)
+    
+    avg_time = total_time / runs
+    complexity_factor = n * k
+    ratio = avg_time / complexity_factor if complexity_factor > 0 else 0
+    
+    print(f"{'Vary Both':<15} {n:<8} {k:<8} {complexity_factor:<12} {avg_time:<12.6f} {ratio:.2e}")
+
+# --- EXPERIMENT C: Vary Both ---
+# Verifies total complexity stability (O(n*k))
+mixed_variations = [
+    (500, 200),    # 100,000
+    (400, 625),    # 250,000
+    (800, 500),    # 400,000
+    (1000, 600),   # 600,000
+    (1600, 500),   # 800,000
+    (1000, 1000),  # 1,000,000
+    (1400, 1000),  # 1,400,000
+    (2000, 1000),  # 2,000,000
+]
+for n, k in mixed_variations:
+    avg_time = run_experiment(n, k)
+    complexity = n * k
+    ratio = avg_time / complexity if complexity > 0 else 0
+    print(f"{'Vary Both':<15} {n:<8} {k:<8} {complexity:<12} {avg_time:<12.6f} {ratio:.2e}")
+
+print("=" * 85)
